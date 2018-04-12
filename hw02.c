@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define BLOCK_SIZE 500
+#define BLOCK_SIZE 22
 #define RED(x) x
 #define GREEN(x) x + 1
 #define BLUE(x) x + 2
@@ -13,11 +13,11 @@ int main(int argc, char **argv)
     unsigned char *img_array;
     char *file_name;
     FILE *fp;
+    FILE *final_picture;
     int width;
     int height;
     int color_range;
     char *file_head = (char *)malloc(10 * sizeof(char));
-    int i = 0, k = 0, j = 0;
 
     if (argc > 1)
     {
@@ -27,24 +27,28 @@ int main(int argc, char **argv)
     if (argc < 2)
     {
         fprintf(stderr, "Error: Name filename as first argument!\n");
+        free(file_head);
         return 1;
     }
 
     if ((fp = fopen(file_name, "rb")) == NULL)
     {
         fprintf(stderr, "Error opening file!\n");
+        free(file_head);
         return 1;
     }
 
     if (fgets(file_head, 10, fp) == NULL)
     {
         fprintf(stderr, "Error reading first line of file!\n");
+        free(file_head);
         return 1;
     }
 
     if (strcmp(file_head, "P6\n") != 0)
     {
         fprintf(stderr, "This file is not P6 file!\n");
+        free(file_head);
         return 1;
     }
 
@@ -68,6 +72,7 @@ int main(int argc, char **argv)
     if (fread(img_array, 1, PIXEL_WIDTH * width * height, fp) != PIXEL_WIDTH * width * height)
     {
         fprintf(stderr, "Error reading the image and loading it into the array!\n");
+        free(img_array);
         return 1;
     }
 
@@ -86,33 +91,63 @@ int main(int argc, char **argv)
 
     fclose(fp);
 
-    // ignore the first and last row (i != 0 & i != height) and ignore first and last column (j != 0 & j != (PIXEL_WIDTH * width + PIXEL_WIDTH))
-    // TODO: This for cycles doesn't fucking work !!! (k = 0 forever and ever)
-    for (i = 1; i < (height - 1); i++)
+    // iterate through the picture with blocks with the width of BLOCK_SIZE * PIXEL_WIDTH (iterate through whole height of the picture with this block size), then move through the picture width to next block with the width of BLOCK_SIZE * PIXEL_WIDTH and iterate through whole height of the picture...
+    for (int i = 0; i <= ((width * PIXEL_WIDTH) / (BLOCK_SIZE * PIXEL_WIDTH)); i++)
     {
-        printf("Line -- %d\n", i);
-        for (j = 0; j < (width * PIXEL_WIDTH - PIXEL_WIDTH); (j + (BLOCK_SIZE * PIXEL_WIDTH)))
+        for (int h = 0; h < (height - 1); h++)
         {
-            printf("J -- %d\n", j);
-            for (k = j; k < (j + (BLOCK_SIZE * PIXEL_WIDTH)) && k < (width * PIXEL_WIDTH - PIXEL_WIDTH); (k + PIXEL_WIDTH))
+            if (h == 0 || h == (height - 2))
             {
-                printf("K -- %d\n", k);
-                if (k == 0)
+                continue;
+            }
+            for (int j = (i * BLOCK_SIZE * 3); j < (i * BLOCK_SIZE * 3 + BLOCK_SIZE * 3) && j < (width * PIXEL_WIDTH); j++)
+            {
+                if (j == 0 || j == ((width * PIXEL_WIDTH) - 1))
                 {
                     continue;
                 }
 
-                img_array[i * width * PIXEL_WIDTH + RED(k)] = (-1 * img_array[i * width * PIXEL_WIDTH + RED(k) - PIXEL_WIDTH]) + (5 * img_array[i * width * PIXEL_WIDTH + RED(k)]) + ((-1) * img_array[i * width * PIXEL_WIDTH + RED(k) + PIXEL_WIDTH]) + (-1 * img_array[(i * width * PIXEL_WIDTH - 1) + RED(k)]) + (-1 * img_array[(i * width * PIXEL_WIDTH + 1) + RED(k)]);
+                img_array[(h * width * PIXEL_WIDTH) + RED(j)] = (-1 * img_array[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH]) + (5 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + ((-1) * img_array[h * width * PIXEL_WIDTH + RED(j) + PIXEL_WIDTH]) + (-1 * img_array[((h - 1) * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);
 
-                img_array[i * width * PIXEL_WIDTH + GREEN(k)] = (-1 * img_array[i * width * PIXEL_WIDTH + GREEN(k) - PIXEL_WIDTH]) + (5 * img_array[i * width * PIXEL_WIDTH + GREEN(k)]) + ((-1) * img_array[i * width * PIXEL_WIDTH + GREEN(k) + PIXEL_WIDTH]) + (-1 * img_array[(i * width * PIXEL_WIDTH - 1) + GREEN(k)]) + (-1 * img_array[(i * width * PIXEL_WIDTH + 1) + GREEN(k)]);
+                if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] < 0)
+                {
+                    img_array[(h * width * PIXEL_WIDTH) + RED(j)] = 0;
+                }
 
-                img_array[i * width * PIXEL_WIDTH + BLUE(k)] = (-1 * img_array[i * width * PIXEL_WIDTH + BLUE(k) - PIXEL_WIDTH]) + (5 * img_array[i * width * PIXEL_WIDTH + BLUE(k)]) + ((-1) * img_array[i * width * PIXEL_WIDTH + BLUE(k) + PIXEL_WIDTH]) + (-1 * img_array[(i * width * PIXEL_WIDTH - 1) + BLUE(k)]) + (-1 * img_array[(i * width * PIXEL_WIDTH + 1) + BLUE(k)]);
+                if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] > 255)
+                {
+                    img_array[(h * width * PIXEL_WIDTH) + RED(j)] = 255;
+                }
+
+                img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = (-1 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH]) + (5 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + ((-1) * img_array[h * width * PIXEL_WIDTH + GREEN(j) + PIXEL_WIDTH]) + (-1 * img_array[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
+
+                if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] < 0)
+                {
+                    img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = 0;
+                }
+
+                if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] > 255)
+                {
+                    img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = 255;
+                }
+
+                img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = (-1 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]) + ((-1) * img_array[h * width * PIXEL_WIDTH + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);
+
+                if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] < 0)
+                {
+                    img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = 0;
+                }
+
+                if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] > 255)
+                {
+                    img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = 255;
+                }
             }
         }
     }
 
     // printing array after convolution into file
-    FILE *final_array = fopen("final_arrays.txt", "w");
+    FILE *final_array = fopen("final_array.txt", "w");
     fprintf(final_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
     for (int i = 0; i < (PIXEL_WIDTH * width * height); i++)
     {
@@ -124,5 +159,21 @@ int main(int argc, char **argv)
     }
     fclose(final_array);
 
+    final_picture = fopen("final_picture.ppm", "w");
+    if ((fprintf(final_picture, "P6\n%d\n%d\n%d\n", width, height, 255)) != 15)
+    {
+        fprintf(stderr, "Error writing type, width, height and color range of pixels!\n");
+        free(img_array);
+        return 1;
+    }
+    if ((fwrite(&final_array, 1, PIXEL_WIDTH * width * height, final_picture)) != PIXEL_WIDTH * width * height)
+    {
+        fprintf(stderr, "Error writing the image from the array!\n");
+        free(img_array);
+        return 1;
+    }
+    fclose(final_picture);
+
+    free(img_array);
     return 0;
 }
