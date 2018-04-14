@@ -69,12 +69,7 @@ int main(int argc, char **argv)
     // don't need anything with the first line of file
     free(file_head);
 
-    if (fscanf(fp, "%d %d %d", &width, &height, &color_range) != 3)
-    {
-        fprintf(stderr, "Error reading width and height!\n");
-        fclose(fp);
-        return 1;
-    }
+    fscanf(fp, "%d %d %d", &width, &height, &color_range);
 
     fgetc(fp);
 
@@ -217,13 +212,9 @@ int main(int argc, char **argv)
         free(img_array);
         return 1;
     }
-    if ((fprintf(final_picture, "P6\n%d\n%d\n%d\n", width, height, 255)) != 15)
-    {
-        fprintf(stderr, "Error writing type, width, height and color range of pixels!\n");
-        free(img_array);
-        fclose(final_picture);
-        return 1;
-    }
+
+    fprintf(final_picture, "P6\n%d\n%d\n%d\n", width, height, 255);
+
     if ((fwrite(img_array, 1, (PIXEL_WIDTH * width * height), final_picture)) != (PIXEL_WIDTH * width * height))
     {
         fprintf(stderr, "Error writing the image from the array!\n");
@@ -253,12 +244,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if((fprintf(histogram_output, "%d %d %d %d %d", hist_01, hist_02, hist_03, hist_04, hist_05)) != 29) {
-        fprintf(stderr, "Error writing histogram numbers into file!\n");
-        free(img_array);
-        fclose(histogram_output);
-        return 1;
-    }
+    fprintf(histogram_output, "%d %d %d %d %d", hist_01, hist_02, hist_03, hist_04, hist_05);
 
     if (fclose(histogram_output) == EOF)
     {
