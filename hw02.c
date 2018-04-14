@@ -42,6 +42,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error reading first line of file!\n");
         free(file_head);
+        fclose(fp);
         return 1;
     }
 
@@ -49,6 +50,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "This file is not P6 file!\n");
         free(file_head);
+        fclose(fp);
         return 1;
     }
 
@@ -60,6 +62,7 @@ int main(int argc, char **argv)
     if (fscanf(fp, "%d %d %d", &width, &height, &color_range) != 3)
     {
         fprintf(stderr, "Error reading width and height!\n");
+        fclose(fp);
         return 1;
     }
 
@@ -73,6 +76,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error reading the image and loading it into the array!\n");
         free(img_array);
+        fclose(fp);
         return 1;
     }
 
@@ -96,11 +100,11 @@ int main(int argc, char **argv)
     {
         for (int h = 0; h < (height - 1); h++)
         {
-            if (h == 0 || h == (height - 2))
+            if (h == 0)
             {
                 continue;
             }
-            for (int j = (i * BLOCK_SIZE * 3); j < (i * BLOCK_SIZE * 3 + BLOCK_SIZE * 3) && j < (width * PIXEL_WIDTH); j++)
+            for (int j = (i * BLOCK_SIZE * PIXEL_WIDTH); j < (i * BLOCK_SIZE * PIXEL_WIDTH + BLOCK_SIZE * PIXEL_WIDTH) && j < (width * PIXEL_WIDTH); j++)
             {
                 if (j == 0 || j == ((width * PIXEL_WIDTH) - 1))
                 {
@@ -164,12 +168,14 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error writing type, width, height and color range of pixels!\n");
         free(img_array);
+        fclose(final_picture);
         return 1;
     }
-    if ((fwrite(&final_array, 1, PIXEL_WIDTH * width * height, final_picture)) != PIXEL_WIDTH * width * height)
+    if ((fwrite(img_array, 1, (PIXEL_WIDTH * width * height), final_picture)) != (PIXEL_WIDTH * width * height))
     {
         fprintf(stderr, "Error writing the image from the array!\n");
         free(img_array);
+        fclose(final_picture);
         return 1;
     }
     fclose(final_picture);
