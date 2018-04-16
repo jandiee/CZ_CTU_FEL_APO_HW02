@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#define BLOCK_SIZE 22
+#define BLOCK_SIZE 3
 #define PIXEL_WIDTH 3
-#define RED(x) (x * PIXEL_WIDTH)
-#define GREEN(x) ((x + 1) * PIXEL_WIDTH)
-#define BLUE(x) ((x + 2) * PIXEL_WIDTH)
+#define RED(x) x
+#define GREEN(x) x + 1
+#define BLUE(x) x + 2
 #define MAX_COLOR_RANGE 255
 
 int main(int argc, char **argv)
@@ -21,6 +21,7 @@ int main(int argc, char **argv)
     int height;
     int color_range;
     char *file_head = (char *)malloc(10 * sizeof(char));
+    unsigned long cursor_position;
 
     // Histogram
     int hist_01 = 0;
@@ -77,6 +78,9 @@ int main(int argc, char **argv)
 
     // printf("Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
 
+    fflush(fp);
+    cursor_position = ftell(fp);
+
     if ((img_array = (unsigned char *)malloc(PIXEL_WIDTH * width * height * sizeof(unsigned char))) == NULL)
     {
         fprintf(stderr, "Error allocating image array!\n");
@@ -96,6 +100,18 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error reading the image and loading it into the array!\n");
         free(img_array);
+        free(img_array_02);
+        fclose(fp);
+        return 1;
+    }
+
+    fseek(fp, cursor_position, SEEK_SET);
+
+    if (fread(img_array_02, 1, PIXEL_WIDTH * width * height, fp) != PIXEL_WIDTH * width * height)
+    {
+        fprintf(stderr, "Error reading the image and loading it into the array!\n");
+        free(img_array);
+        free(img_array_02);
         fclose(fp);
         return 1;
     }
@@ -106,34 +122,89 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    strcpy(img_array_02, img_array);
-
     // printing whole array into file to check if it's complete
-    // FILE *source_array = fopen("source_array.txt", "w");
-    // fprintf(source_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
-    // for (int i = 0; i < (PIXEL_WIDTH * width * height); i++)
-    // {
-    //     fprintf(source_array, "%d ", img_array[i]);
-    //     if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
-    //     {
-    //         fprintf(source_array, "\n");
-    //     }
-    // }
-    // fclose(source_array);
-
-    // iterate through the picture with blocks with the width of BLOCK_SIZE * PIXEL_WIDTH (iterate through whole height of the picture with this block size), then move through the picture width to next block with the width of BLOCK_SIZE * PIXEL_WIDTH and iterate through whole height of the picture...
-    for (int i = 0; i <= ((width * PIXEL_WIDTH) / (BLOCK_SIZE * PIXEL_WIDTH)); i++)
+    FILE *source_array = fopen("source_array.txt", "w");
+    fprintf(source_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
+    for (int i = 1; i <= (PIXEL_WIDTH * width * height); i++)
     {
-        for (int h = 0; h < (height - 1); h++)
+        // fprintf(source_array, "i -- %d ", i);
+        fprintf(source_array, "%d ", img_array[i - 1]);
+        if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
         {
-            if (h == 0)
-            {
+            fprintf(source_array, "\n");
+        }
+    }
+    fclose(source_array);
+
+    for (int i = 0; i <= width / BLOCK_SIZE; i++)
+    {
+        // printf("i -- %d\n", i);
+        for (int h = 0; h < height; h++)
+        {
+            // printf("h -- %d\n", h);
+            if(h == 0 || h == height - 1) {
+                hist_temp = (int)(0.2126 * img_array[(h * width * PIXEL_WIDTH)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH)]);
+
+                if (hist_temp >= 0 && hist_temp < 51)
+                {
+                    hist_01++;
+                }
+                else if (hist_temp >= 51 && hist_temp < 102)
+                {
+                    hist_02++;
+                }
+                else if (hist_temp >= 102 && hist_temp < 153)
+                {
+                    hist_03++;
+                }
+                else if (hist_temp >= 153 && hist_temp < 204)
+                {
+                    hist_04++;
+                }
+                else if (hist_temp >= 204 && hist_temp <= 255)
+                {
+                    hist_05++;
+                }
+                else
+                {
+                    hist_error++;
+                }
+                
                 continue;
             }
-            for (int j = i * BLOCK_SIZE; j < i * BLOCK_SIZE + BLOCK_SIZE && j < width; j++)
+
+            for (int j = i * BLOCK_SIZE * PIXEL_WIDTH; j < i * BLOCK_SIZE * PIXEL_WIDTH + BLOCK_SIZE * PIXEL_WIDTH && j < width * PIXEL_WIDTH; j += PIXEL_WIDTH)
             {
-                if (j == 0 || j == ((width * PIXEL_WIDTH) - 1))
+                // printf("j -- %d\n", j);
+                if (j == 0 || j == (width * PIXEL_WIDTH) - PIXEL_WIDTH)
                 {
+                    hist_temp = (int)(0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]);
+
+                    if (hist_temp >= 0 && hist_temp < 51)
+                    {
+                        hist_01++;
+                    }
+                    else if (hist_temp >= 51 && hist_temp < 102)
+                    {
+                        hist_02++;
+                    }
+                    else if (hist_temp >= 102 && hist_temp < 153)
+                    {
+                        hist_03++;
+                    }
+                    else if (hist_temp >= 153 && hist_temp < 204)
+                    {
+                        hist_04++;
+                    }
+                    else if (hist_temp >= 204 && hist_temp <= 255)
+                    {
+                        hist_05++;
+                    }
+                    else
+                    {
+                        hist_error++;
+                    }
+                    
                     continue;
                 }
 
@@ -193,7 +264,7 @@ int main(int argc, char **argv)
                 {
                     hist_04++;
                 }
-                else if (hist_temp >= 204 && hist_temp < 256)
+                else if (hist_temp >= 204 && hist_temp <= 255)
                 {
                     hist_05++;
                 }
@@ -206,17 +277,18 @@ int main(int argc, char **argv)
     }
 
     // printing array after convolution into file
-    // FILE *final_array = fopen("final_array.txt", "w");
-    // fprintf(final_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
-    // for (int i = 0; i < (PIXEL_WIDTH * width * height); i++)
-    // {
-    //     fprintf(final_array, "%d ", img_array[i]);
-    //     if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
-    //     {
-    //         fprintf(final_array, "\n");
-    //     }
-    // }
-    // fclose(final_array);
+    FILE *final_array = fopen("final_array.txt", "w");
+    fprintf(final_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
+    for (int i = 1; i <= (PIXEL_WIDTH * width * height); i++)
+    {
+        // fprintf(final_array, "i -- %d ", i);
+        fprintf(final_array, "%d ", img_array[i - 1]);
+        if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
+        {
+            fprintf(final_array, "\n");
+        }
+    }
+    fclose(final_array);
 
     if ((final_picture = fopen("final_picture.ppm", "w")) == NULL)
     {
