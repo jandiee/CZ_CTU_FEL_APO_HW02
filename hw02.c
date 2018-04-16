@@ -3,14 +3,16 @@
 #include <string.h>
 
 #define BLOCK_SIZE 22
-#define RED(x) x
-#define GREEN(x) x + 1
-#define BLUE(x) x + 2
 #define PIXEL_WIDTH 3
+#define RED(x) (x * PIXEL_WIDTH)
+#define GREEN(x) ((x + 1) * PIXEL_WIDTH)
+#define BLUE(x) ((x + 2) * PIXEL_WIDTH)
+#define MAX_COLOR_RANGE 255
 
 int main(int argc, char **argv)
 {
     unsigned char *img_array;
+    unsigned char *img_array_02;
     char *file_name;
     FILE *fp;
     FILE *final_picture;
@@ -82,6 +84,14 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    if ((img_array_02 = (unsigned char *)malloc(PIXEL_WIDTH * width * height * sizeof(unsigned char))) == NULL)
+    {
+        fprintf(stderr, "Error allocating image array!\n");
+        fclose(fp);
+        free(img_array);
+        return 1;
+    }
+
     if (fread(img_array, 1, PIXEL_WIDTH * width * height, fp) != PIXEL_WIDTH * width * height)
     {
         fprintf(stderr, "Error reading the image and loading it into the array!\n");
@@ -95,6 +105,8 @@ int main(int argc, char **argv)
         fprintf(stderr, "Error closing the picture file!\n");
         return 1;
     }
+
+    strcpy(img_array_02, img_array);
 
     // printing whole array into file to check if it's complete
     // FILE *source_array = fopen("source_array.txt", "w");
@@ -118,47 +130,47 @@ int main(int argc, char **argv)
             {
                 continue;
             }
-            for (int j = (i * BLOCK_SIZE * PIXEL_WIDTH); j < (i * BLOCK_SIZE * PIXEL_WIDTH + BLOCK_SIZE * PIXEL_WIDTH) && j < (width * PIXEL_WIDTH); j++)
+            for (int j = i * BLOCK_SIZE; j < i * BLOCK_SIZE + BLOCK_SIZE && j < width; j++)
             {
                 if (j == 0 || j == ((width * PIXEL_WIDTH) - 1))
                 {
                     continue;
                 }
 
-                img_array[(h * width * PIXEL_WIDTH) + RED(j)] = (-1 * img_array[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH]) + (5 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + ((-1) * img_array[h * width * PIXEL_WIDTH + RED(j) + PIXEL_WIDTH]) + (-1 * img_array[((h - 1) * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);
+                img_array[(h * width * PIXEL_WIDTH) + RED(j)] = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j)]) + ((-1) * img_array_02[h * width * PIXEL_WIDTH + RED(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);
 
                 if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] < 0)
                 {
                     img_array[(h * width * PIXEL_WIDTH) + RED(j)] = 0;
                 }
 
-                if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] > 255)
+                if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] > MAX_COLOR_RANGE)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + RED(j)] = 255;
+                    img_array[(h * width * PIXEL_WIDTH) + RED(j)] = MAX_COLOR_RANGE;
                 }
 
-                img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = (-1 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH]) + (5 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + ((-1) * img_array[h * width * PIXEL_WIDTH + GREEN(j) + PIXEL_WIDTH]) + (-1 * img_array[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
+                img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j)]) + ((-1) * img_array_02[h * width * PIXEL_WIDTH + GREEN(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
 
                 if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] < 0)
                 {
                     img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = 0;
                 }
 
-                if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] > 255)
+                if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] > MAX_COLOR_RANGE)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = 255;
+                    img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = MAX_COLOR_RANGE;
                 }
 
-                img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = (-1 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]) + ((-1) * img_array[h * width * PIXEL_WIDTH + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);
+                img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j)]) + ((-1) * img_array_02[h * width * PIXEL_WIDTH + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);
 
                 if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] < 0)
                 {
                     img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = 0;
                 }
 
-                if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] > 255)
+                if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] > MAX_COLOR_RANGE)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = 255;
+                    img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = MAX_COLOR_RANGE;
                 }
 
                 // Y = round(0.2126 * R + 0.7152 * G + 0.0722 * B)
@@ -210,15 +222,17 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error opening final picture file!\n");
         free(img_array);
+        free(img_array_02);
         return 1;
     }
 
-    fprintf(final_picture, "P6\n%d\n%d\n%d\n", width, height, 255);
+    fprintf(final_picture, "P6\n%d\n%d\n%d\n", width, height, MAX_COLOR_RANGE);
 
     if ((fwrite(img_array, 1, (PIXEL_WIDTH * width * height), final_picture)) != (PIXEL_WIDTH * width * height))
     {
         fprintf(stderr, "Error writing the image from the array!\n");
         free(img_array);
+        free(img_array_02);
         fclose(final_picture);
         return 1;
     }
@@ -226,6 +240,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error closing the final picture file!\n");
         free(img_array);
+        free(img_array_02);
         return 1;
     }
 
@@ -233,6 +248,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error opening histogram output file!\n");
         free(img_array);
+        free(img_array_02);
         return 1;
     }
 
@@ -240,6 +256,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "One of the histogram numbers is not in the stated interval!\n");
         free(img_array);
+        free(img_array_02);
         fclose(histogram_output);
         return 1;
     }
@@ -250,9 +267,11 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error closing the histogram output file!\n");
         free(img_array);
+        free(img_array_02);
         return 1;
     }
 
     free(img_array);
+    free(img_array_02);
     return 0;
 }
