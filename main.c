@@ -35,13 +35,11 @@ int main(int argc, char **argv)
     int hist_temp = 0;
     int hist_error = 0;
 
-    int count = 0;
-
     if (argc > 1)
     {
         file_name = argv[1];
     }
-    // printf("File name -- %s\n", argv[1]);
+
     if (argc < 2)
     {
         fprintf(stderr, "Error: Name filename as first argument!\n");
@@ -75,7 +73,11 @@ int main(int argc, char **argv)
     // don't need anything with the first line of file
     free(file_head);
 
-    fscanf(fp, "%d %d %d", &width, &height, &color_range);
+    if((fscanf(fp, "%d %d %d", &width, &height, &color_range)) != 3) {
+        fprintf(stderr, "Error reading width, height and color range!\n");
+        fclose(fp);
+        return 1;
+    }
 
     fgetc(fp);
 
