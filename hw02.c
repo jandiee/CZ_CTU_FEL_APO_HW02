@@ -13,6 +13,9 @@ int main(int argc, char **argv)
 {
     unsigned char *img_array;
     unsigned char *img_array_02;
+    int tmp_red;
+    int tmp_green;
+    int tmp_blue;
     char *file_name;
     FILE *fp;
     FILE *final_picture;
@@ -31,6 +34,8 @@ int main(int argc, char **argv)
     int hist_05 = 0;
     int hist_temp = 0;
     int hist_error = 0;
+
+    int count = 0;
 
     if (argc > 1)
     {
@@ -67,16 +72,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // printf("file_head -- %s\n", file_head);
-
     // don't need anything with the first line of file
     free(file_head);
 
     fscanf(fp, "%d %d %d", &width, &height, &color_range);
 
     fgetc(fp);
-
-    // printf("Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
 
     fflush(fp);
     cursor_position = ftell(fp);
@@ -123,60 +124,26 @@ int main(int argc, char **argv)
     }
 
     // printing whole array into file to check if it's complete
-    FILE *source_array = fopen("source_array.txt", "w");
-    fprintf(source_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
-    for (int i = 1; i <= (PIXEL_WIDTH * width * height); i++)
-    {
-        // fprintf(source_array, "i -- %d ", i);
-        fprintf(source_array, "%d ", img_array[i - 1]);
-        if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
-        {
-            fprintf(source_array, "\n");
-        }
-    }
-    fclose(source_array);
+    // FILE *source_array = fopen("source_array.txt", "w");
+    // fprintf(source_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
+    // for (int i = 1; i <= (PIXEL_WIDTH * width * height); i++)
+    // {
+    //     // fprintf(source_array, "i -- %d ", i);
+    //     fprintf(source_array, "%d ", img_array[i - 1]);
+    //     if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
+    //     {
+    //         fprintf(source_array, "\n");
+    //     }
+    // }
+    // fclose(source_array);
 
     for (int i = 0; i <= width / BLOCK_SIZE; i++)
     {
-        // printf("i -- %d\n", i);
         for (int h = 0; h < height; h++)
         {
-            // printf("h -- %d\n", h);
-            if(h == 0 || h == height - 1) {
-                hist_temp = (int)(0.2126 * img_array[(h * width * PIXEL_WIDTH)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH)]);
-
-                if (hist_temp >= 0 && hist_temp < 51)
-                {
-                    hist_01++;
-                }
-                else if (hist_temp >= 51 && hist_temp < 102)
-                {
-                    hist_02++;
-                }
-                else if (hist_temp >= 102 && hist_temp < 153)
-                {
-                    hist_03++;
-                }
-                else if (hist_temp >= 153 && hist_temp < 204)
-                {
-                    hist_04++;
-                }
-                else if (hist_temp >= 204 && hist_temp <= 255)
-                {
-                    hist_05++;
-                }
-                else
-                {
-                    hist_error++;
-                }
-                
-                continue;
-            }
-
             for (int j = i * BLOCK_SIZE * PIXEL_WIDTH; j < i * BLOCK_SIZE * PIXEL_WIDTH + BLOCK_SIZE * PIXEL_WIDTH && j < width * PIXEL_WIDTH; j += PIXEL_WIDTH)
             {
-                // printf("j -- %d\n", j);
-                if (j == 0 || j == (width * PIXEL_WIDTH) - PIXEL_WIDTH)
+                if (j == 0 || j == (width * PIXEL_WIDTH) - PIXEL_WIDTH || h == 0 || h == height - 1)
                 {
                     hist_temp = (int)(0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]);
 
@@ -208,41 +175,45 @@ int main(int argc, char **argv)
                     continue;
                 }
 
-                img_array[(h * width * PIXEL_WIDTH) + RED(j)] = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j)]) + ((-1) * img_array_02[h * width * PIXEL_WIDTH + RED(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);
+                tmp_red = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);
 
-                if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] < 0)
+                tmp_green = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
+
+                tmp_blue = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);            
+
+                if (tmp_red < 0)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + RED(j)] = 0;
+                    tmp_red = 0;
                 }
 
-                if (img_array[(h * width * PIXEL_WIDTH) + RED(j)] > MAX_COLOR_RANGE)
+                if (tmp_red > MAX_COLOR_RANGE)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + RED(j)] = MAX_COLOR_RANGE;
+                    tmp_red = MAX_COLOR_RANGE;
                 }
 
-                img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j)]) + ((-1) * img_array_02[h * width * PIXEL_WIDTH + GREEN(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
-
-                if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] < 0)
+                if (tmp_green < 0)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = 0;
+                    tmp_green = 0;
                 }
 
-                if (img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] > MAX_COLOR_RANGE)
+                if (tmp_green > MAX_COLOR_RANGE)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = MAX_COLOR_RANGE;
+                    tmp_green = MAX_COLOR_RANGE;
                 }
 
-                img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j)]) + ((-1) * img_array_02[h * width * PIXEL_WIDTH + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);
-
-                if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] < 0)
+                if (tmp_blue < 0)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = 0;
+                    tmp_blue = 0;
                 }
 
-                if (img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] > MAX_COLOR_RANGE)
+                if (tmp_blue > MAX_COLOR_RANGE)
                 {
-                    img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = MAX_COLOR_RANGE;
+                    tmp_blue = MAX_COLOR_RANGE;
                 }
+
+                img_array[(h * width * PIXEL_WIDTH) + RED(j)] = tmp_red;
+                img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = tmp_green;
+                img_array[(h * width * PIXEL_WIDTH) + BLUE(j)] = tmp_blue;
 
                 // Y = round(0.2126 * R + 0.7152 * G + 0.0722 * B)
 
@@ -277,20 +248,20 @@ int main(int argc, char **argv)
     }
 
     // printing array after convolution into file
-    FILE *final_array = fopen("final_array.txt", "w");
-    fprintf(final_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
-    for (int i = 1; i <= (PIXEL_WIDTH * width * height); i++)
-    {
-        // fprintf(final_array, "i -- %d ", i);
-        fprintf(final_array, "%d ", img_array[i - 1]);
-        if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
-        {
-            fprintf(final_array, "\n");
-        }
-    }
-    fclose(final_array);
+    // FILE *final_array = fopen("final_array.txt", "w");
+    // fprintf(final_array, "Width -- %d\nHeight -- %d\nColor Range -- %d\n", width, height, color_range);
+    // for (int i = 1; i <= (PIXEL_WIDTH * width * height); i++)
+    // {
+    //     // fprintf(final_array, "i -- %d ", i);
+    //     fprintf(final_array, "%d ", img_array[i - 1]);
+    //     if (i % (PIXEL_WIDTH * width) == 0 && i != 0)
+    //     {
+    //         fprintf(final_array, "\n");
+    //     }
+    // }
+    // fclose(final_array);
 
-    if ((final_picture = fopen("final_picture.ppm", "w")) == NULL)
+    if ((final_picture = fopen("output.ppm", "w")) == NULL)
     {
         fprintf(stderr, "Error opening final picture file!\n");
         free(img_array);
