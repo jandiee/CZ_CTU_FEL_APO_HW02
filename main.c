@@ -1,13 +1,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
-#define BLOCK_SIZE 3
+#define BLOCK_SIZE 21
 #define PIXEL_WIDTH 3
 #define RED(x) x
 #define GREEN(x) x + 1
 #define BLUE(x) x + 2
 #define MAX_COLOR_RANGE 255
+
+// int round_it(double x)
+// {
+//     if (x < 0.0)
+//         return (int)(x - 0.5);
+//     else
+//         return (int)(x + 0.5);
+// }
 
 int main(int argc, char **argv)
 {
@@ -147,7 +156,7 @@ int main(int argc, char **argv)
             {
                 if (j == 0 || j == (width * PIXEL_WIDTH) - PIXEL_WIDTH || h == 0 || h == height - 1)
                 {
-                    hist_temp = (int)(0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]);
+                    hist_temp = round((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]));
 
                     if (hist_temp >= 0 && hist_temp < 51)
                     {
@@ -219,21 +228,21 @@ int main(int argc, char **argv)
 
                 // Y = round(0.2126 * R + 0.7152 * G + 0.0722 * B)
 
-                hist_temp = (int)(0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]);
+                hist_temp = round((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]));
 
-                if (hist_temp >= 0 && hist_temp < 51)
+                if (hist_temp >= 0 && hist_temp <= 50)
                 {
                     hist_01++;
                 }
-                else if (hist_temp >= 51 && hist_temp < 102)
+                else if (hist_temp >= 51 && hist_temp <= 101)
                 {
                     hist_02++;
                 }
-                else if (hist_temp >= 102 && hist_temp < 153)
+                else if (hist_temp >= 102 && hist_temp <= 152)
                 {
                     hist_03++;
                 }
-                else if (hist_temp >= 153 && hist_temp < 204)
+                else if (hist_temp >= 153 && hist_temp <= 203)
                 {
                     hist_04++;
                 }
