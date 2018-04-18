@@ -1,22 +1,45 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
-#define BLOCK_SIZE 550
+#define BLOCK_SIZE 2200
 #define PIXEL_WIDTH 3
 #define RED(x) x
 #define GREEN(x) x + 1
 #define BLUE(x) x + 2
 #define MAX_COLOR_RANGE 255
 
-// int round_it(double x)
-// {
-//     if (x < 0.0)
-//         return (int)(x - 0.5);
-//     else
-//         return (int)(x + 0.5);
-// }
+#pragma GCC optimize ("O3")
+int round_it (double x)
+{
+    if (x < 0.0)
+        return (int)(x - 0.5);
+    else
+        return (int)(x + 0.5);
+}
+
+#pragma GCC optimize ("O3")
+int count_color (unsigned char left, unsigned char mid, unsigned char right, unsigned char top, unsigned char bottom) {
+    return (int)(-1 * left) + (5 * mid) + (-1 * right) + (-1 * top) + (-1 * bottom);
+}
+
+#pragma GCC optimize ("O3")
+int check_limits (int value) {
+    if ((value >> 8) != 0)
+    {
+        if (value < 0) 
+        {
+            return 0;
+        }
+        else 
+        {
+            return MAX_COLOR_RANGE;
+        }
+    }
+    else {
+        return value;
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -41,7 +64,6 @@ int main(int argc, char **argv)
     int hist_03 = 0;
     int hist_04 = 0;
     int hist_05 = 0;
-    int hist_temp = 0;
     int hist_error = 0;
 
     if (argc > 1)
@@ -156,77 +178,38 @@ int main(int argc, char **argv)
             {
                 if (j == 0 || j == (width * PIXEL_WIDTH) - PIXEL_WIDTH || h == 0 || h == height - 1)
                 {
-                    hist_temp = round((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]));
-
-                    if (hist_temp >= 0 && hist_temp <= 50)
-                    {
-                        hist_01++;
-                    }
-                    else if (hist_temp >= 51 && hist_temp <= 101)
-                    {
-                        hist_02++;
-                    }
-                    else if (hist_temp >= 102 && hist_temp <= 152)
-                    {
-                        hist_03++;
-                    }
-                    else if (hist_temp >= 153 && hist_temp <= 203)
-                    {
-                        hist_04++;
-                    }
-                    else if (hist_temp >= 204 && hist_temp <= 255)
-                    {
-                        hist_05++;
-                    }
-                    else
-                    {
-                        hist_error++;
+                    switch (round_it((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]))) {
+                        case 0 ... 50:
+                            ++hist_01;
+                            break;
+                        case 51 ... 101:
+                            ++hist_02;
+                            break;
+                        case 102 ... 152:
+                            ++hist_03;
+                            break;
+                        case 153 ... 203:
+                            ++hist_04;
+                            break;
+                        case 204 ... 255:
+                            ++hist_05;
+                            break;
+                        default:
+                            break;
                     }
                     
                     continue;
                 }
 
-                tmp_red = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + RED(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + RED(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);
+                tmp_red = count_color(img_array_02[(h * width * PIXEL_WIDTH) + RED(j) - PIXEL_WIDTH], img_array_02[(h * width * PIXEL_WIDTH) + RED(j)], img_array_02[(h * width * PIXEL_WIDTH) + RED(j) + PIXEL_WIDTH], img_array_02[((h - 1) * width * PIXEL_WIDTH) + RED(j)], img_array_02[((h + 1) * width * PIXEL_WIDTH) + RED(j)]);         
 
-                tmp_green = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
+                tmp_green = count_color(img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) - PIXEL_WIDTH], img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j)], img_array_02[(h * width * PIXEL_WIDTH) + GREEN(j) + PIXEL_WIDTH], img_array_02[((h - 1) * width * PIXEL_WIDTH) + GREEN(j)], img_array_02[((h + 1) * width * PIXEL_WIDTH) + GREEN(j)]);
 
-                tmp_blue = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);            
+                tmp_blue = count_color(img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH], img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j)], img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) + PIXEL_WIDTH], img_array_02[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)], img_array_02[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);
 
-                if ((tmp_red >> 8) != 0)
-                {
-                    if (tmp_red < 0) 
-                    {
-                        tmp_red = 0;
-                    }
-                    else 
-                    {
-                        tmp_red = MAX_COLOR_RANGE;
-                    }
-                }
-
-                if ((tmp_green >> 8) != 0)
-                {
-                    if (tmp_green < 0) 
-                    {
-                        tmp_green = 0;
-                    }
-                    else 
-                    {
-                        tmp_green = MAX_COLOR_RANGE;
-                    }
-                }
-
-                if ((tmp_blue >> 8) != 0)
-                {
-                    if (tmp_blue < 0) 
-                    {
-                        tmp_blue = 0;
-                    }
-                    else 
-                    {
-                        tmp_blue = MAX_COLOR_RANGE;
-                    }
-                }
+                tmp_red = check_limits (tmp_red);
+                tmp_green = check_limits (tmp_green);
+                tmp_blue = check_limits (tmp_blue);
 
                 img_array[(h * width * PIXEL_WIDTH) + RED(j)] = tmp_red;
                 img_array[(h * width * PIXEL_WIDTH) + GREEN(j)] = tmp_green;
@@ -234,31 +217,24 @@ int main(int argc, char **argv)
 
                 // Y = round(0.2126 * R + 0.7152 * G + 0.0722 * B)
 
-                hist_temp = round((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]));
-
-                if (hist_temp >= 0 && hist_temp <= 50)
-                {
-                    hist_01++;
-                }
-                else if (hist_temp >= 51 && hist_temp <= 101)
-                {
-                    hist_02++;
-                }
-                else if (hist_temp >= 102 && hist_temp <= 152)
-                {
-                    hist_03++;
-                }
-                else if (hist_temp >= 153 && hist_temp <= 203)
-                {
-                    hist_04++;
-                }
-                else if (hist_temp >= 204 && hist_temp <= 255)
-                {
-                    hist_05++;
-                }
-                else
-                {
-                    hist_error++;
+                switch (round_it((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]))) {
+                    case 0 ... 50:
+                        ++hist_01;
+                        break;
+                    case 51 ... 101:
+                        ++hist_02;
+                        break;
+                    case 102 ... 152:
+                        ++hist_03;
+                        break;
+                    case 153 ... 203:
+                        ++hist_04;
+                        break;
+                    case 204 ... 255:
+                        ++hist_05;
+                        break;
+                    default:
+                        break;
                 }
             }
         }
