@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-#define BLOCK_SIZE 21
+#define BLOCK_SIZE 550
 #define PIXEL_WIDTH 3
 #define RED(x) x
 #define GREEN(x) x + 1
@@ -192,34 +192,40 @@ int main(int argc, char **argv)
 
                 tmp_blue = (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) - PIXEL_WIDTH]) + (5 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[(h * width * PIXEL_WIDTH) + BLUE(j) + PIXEL_WIDTH]) + (-1 * img_array_02[((h - 1) * width * PIXEL_WIDTH) + BLUE(j)]) + (-1 * img_array_02[((h + 1) * width * PIXEL_WIDTH) + BLUE(j)]);            
 
-                if (tmp_red < 0)
+                if ((tmp_red >> 8) != 0)
                 {
-                    tmp_red = 0;
+                    if (tmp_red < 0) 
+                    {
+                        tmp_red = 0;
+                    }
+                    else 
+                    {
+                        tmp_red = MAX_COLOR_RANGE;
+                    }
                 }
 
-                if (tmp_red > MAX_COLOR_RANGE)
+                if ((tmp_green >> 8) != 0)
                 {
-                    tmp_red = MAX_COLOR_RANGE;
+                    if (tmp_green < 0) 
+                    {
+                        tmp_green = 0;
+                    }
+                    else 
+                    {
+                        tmp_green = MAX_COLOR_RANGE;
+                    }
                 }
 
-                if (tmp_green < 0)
+                if ((tmp_blue >> 8) != 0)
                 {
-                    tmp_green = 0;
-                }
-
-                if (tmp_green > MAX_COLOR_RANGE)
-                {
-                    tmp_green = MAX_COLOR_RANGE;
-                }
-
-                if (tmp_blue < 0)
-                {
-                    tmp_blue = 0;
-                }
-
-                if (tmp_blue > MAX_COLOR_RANGE)
-                {
-                    tmp_blue = MAX_COLOR_RANGE;
+                    if (tmp_blue < 0) 
+                    {
+                        tmp_blue = 0;
+                    }
+                    else 
+                    {
+                        tmp_blue = MAX_COLOR_RANGE;
+                    }
                 }
 
                 img_array[(h * width * PIXEL_WIDTH) + RED(j)] = tmp_red;
