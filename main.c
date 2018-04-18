@@ -156,21 +156,21 @@ int main(int argc, char **argv)
             {
                 if (j == 0 || j == (width * PIXEL_WIDTH) - PIXEL_WIDTH || h == 0 || h == height - 1)
                 {
-                    hist_temp = round((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (int)(0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (int)(0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]));
+                    hist_temp = round((0.2126 * img_array[(h * width * PIXEL_WIDTH) + RED(j)]) + (0.7152 * img_array[(h * width * PIXEL_WIDTH) + GREEN(j)]) + (0.0722 * img_array[(h * width * PIXEL_WIDTH) + BLUE(j)]));
 
-                    if (hist_temp >= 0 && hist_temp < 51)
+                    if (hist_temp >= 0 && hist_temp <= 50)
                     {
                         hist_01++;
                     }
-                    else if (hist_temp >= 51 && hist_temp < 102)
+                    else if (hist_temp >= 51 && hist_temp <= 101)
                     {
                         hist_02++;
                     }
-                    else if (hist_temp >= 102 && hist_temp < 153)
+                    else if (hist_temp >= 102 && hist_temp <= 152)
                     {
                         hist_03++;
                     }
-                    else if (hist_temp >= 153 && hist_temp < 204)
+                    else if (hist_temp >= 153 && hist_temp <= 203)
                     {
                         hist_04++;
                     }
